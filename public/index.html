@@ -22,7 +22,7 @@
                 <div class="page-content">
                     <h1>Welcome to the Huda Math Club</h1>
                     <p>Grab a pencil. We tackle the hardest problems every week.</p>
-                    <p class="small muted">Two sessions run each term, twenty seats each. Once a session fills, new sign-ups join the waitlist in order.</p>
+                    <p class="small muted">Two sessions run each term, twenty seats each. Once a session fills, new sign-ups join the waitlist in order and move up automatically as seats open.</p>
                 </div>
             </div>
 
@@ -63,19 +63,27 @@
                         <div class="page-content">
                             <h1>Register Cont.</h1>
 
-                            <label for="child-name">Child's name</label>
-                            <input id="child-name" type="text" v-model="form.childName" placeholder="e.g. Ada Lovelace"
-                                   @keyup.enter="submitRegistration">
+                            <div class="field">
+                                <label for="child-name">Child's name</label>
+                                <input id="child-name" type="text" v-model="form.childName"
+                                       placeholder="e.g. Ada Lovelace"
+                                       :class="{ 'has-error': showError('childName') }"
+                                       @blur="touch('childName')"
+                                       @keyup.enter="submitRegistration">
+                                <p v-if="showError('childName')" class="field-error">{{ fieldErrors.childName }}</p>
+                            </div>
 
-                            <label for="session">Session</label>
-                            <select id="session" v-model="form.session">
-                                <option>Session 1</option>
-                                <option>Session 2</option>
-                            </select>
+                            <div class="field">
+                                <label for="session">Session</label>
+                                <select id="session" v-model="form.session">
+                                    <option>Session 1</option>
+                                    <option>Session 2</option>
+                                </select>
+                            </div>
 
                             <p class="note">
-                                We keep your email and phone so we can send an invoice once the club's LLC is set up.
-                                Nothing is due today &mdash; payment details will come straight to you.
+                                We will be sending out invoices once financials with the school are completed.
+                                Please expect an invoice soon at the email and phone you gave us.
                             </p>
 
                             <div v-if="regError" class="alert alert-bad">{{ regError }}</div>
@@ -86,7 +94,8 @@
                                 </template>
                                 <template v-else>
                                     {{ regResult.session }} is full, so {{ regResult.childName }} is on the waitlist at
-                                    spot #{{ regResult.waitlistSpot }}. We'll email you the moment a seat frees up.
+                                    spot #{{ regResult.waitlistSpot }}. Spots move up on their own as seats open &mdash;
+                                    check back on the Login page.
                                 </template>
                             </div>
 
@@ -106,9 +115,15 @@
                             <h1>Login</h1>
                             <p>Enter the email you signed up with to see where each child stands.</p>
 
-                            <label for="login-email">Email</label>
-                            <input id="login-email" type="email" v-model="loginEmail" placeholder="you@example.com"
-                                   @keyup.enter="lookUpHistory">
+                            <div class="field">
+                                <label for="login-email">Email</label>
+                                <input id="login-email" type="email" v-model="loginEmail"
+                                       autocomplete="email" placeholder="you@example.com"
+                                       :class="{ 'has-error': loginTouched && loginEmailError }"
+                                       @blur="loginTouched = true"
+                                       @keyup.enter="lookUpHistory">
+                                <p v-if="loginTouched && loginEmailError" class="field-error">{{ loginEmailError }}</p>
+                            </div>
 
                             <div class="btn-row">
                                 <button class="paper-btn" @click="lookUpHistory" :disabled="historyLoading">
@@ -139,14 +154,34 @@
                             <h1>Register</h1>
                             <p>Write your details below, then turn the page to finish.</p>
 
-                            <label for="parent-name">Parent or guardian name</label>
-                            <input id="parent-name" type="text" v-model="form.parentName" placeholder="e.g. Sofia Kovalevskaya">
+                            <div class="field">
+                                <label for="parent-name">Parent or guardian name</label>
+                                <input id="parent-name" type="text" v-model="form.parentName"
+                                       autocomplete="name" placeholder="e.g. Sofia Kovalevskaya"
+                                       :class="{ 'has-error': showError('parentName') }"
+                                       @blur="touch('parentName')">
+                                <p v-if="showError('parentName')" class="field-error">{{ fieldErrors.parentName }}</p>
+                            </div>
 
-                            <label for="parent-email">Email</label>
-                            <input id="parent-email" type="email" v-model="form.parentEmail" placeholder="you@example.com">
+                            <div class="field">
+                                <label for="parent-email">Email</label>
+                                <input id="parent-email" type="email" v-model="form.parentEmail"
+                                       autocomplete="email" placeholder="you@example.com"
+                                       :class="{ 'has-error': showError('parentEmail') }"
+                                       @blur="touch('parentEmail')">
+                                <p v-if="showError('parentEmail')" class="field-error">{{ fieldErrors.parentEmail }}</p>
+                            </div>
 
-                            <label for="parent-phone">Phone</label>
-                            <input id="parent-phone" type="tel" v-model="form.parentPhone" placeholder="(313) 555-0142">
+                            <div class="field">
+                                <label for="parent-phone">Phone</label>
+                                <input id="parent-phone" type="tel" inputmode="numeric" maxlength="12"
+                                       autocomplete="tel" placeholder="313-555-0142"
+                                       :value="form.parentPhone"
+                                       :class="{ 'has-error': showError('parentPhone') }"
+                                       @input="onPhoneInput"
+                                       @blur="touch('parentPhone')">
+                                <p v-if="showError('parentPhone')" class="field-error">{{ fieldErrors.parentPhone }}</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -175,9 +210,18 @@
                 </div>
             </div>
         </div>
+
+        <!-- Shown only below the 510px breakpoint, where the notebook drops to
+             one page at a time. Hidden entirely on desktop by CSS. -->
+        <div class="mobile-note" v-if="!mobileNoteDismissed">
+            <span>This opens as a full two-page notebook on a laptop or desktop. It still works here &mdash; the pages just flip one at a time.</span>
+            <button class="mobile-note-close" @click="mobileNoteDismissed = true" aria-label="Dismiss">&times;</button>
+        </div>
     </div>
 
     <script>
+        var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
         new Vue({
             el: '#app',
             data: {
@@ -196,19 +240,95 @@
                     childName: '',
                     session: 'Session 1'
                 },
+                // A field only shows its error once the parent has left it or tried to submit.
+                touched: {
+                    parentName: false,
+                    parentEmail: false,
+                    parentPhone: false,
+                    childName: false
+                },
                 submitting: false,
                 regError: '',
                 regResult: null,
 
                 loginEmail: '',
+                loginTouched: false,
                 historyEmail: '',
                 history: [],
                 historyLoaded: false,
                 historyLoading: false,
-                historyError: ''
+                historyError: '',
+
+                mobileNoteDismissed: false
+            },
+
+            computed: {
+                fieldErrors: function () {
+                    var f = this.form;
+                    var email = f.parentEmail.trim();
+                    var emailError = '';
+
+                    if (email.length === 0) {
+                        emailError = 'Add an email address.';
+                    } else if (email.indexOf('@') === -1) {
+                        emailError = 'An email address needs an @ in it.';
+                    } else if (!EMAIL_RE.test(email)) {
+                        emailError = "That doesn't look like a complete email address.";
+                    }
+
+                    return {
+                        parentName: f.parentName.trim().length < 2 ? 'Add the parent or guardian name.' : '',
+                        parentEmail: emailError,
+                        parentPhone: this.digitsOnly(f.parentPhone).length !== 10 ? 'Enter all 10 digits.' : '',
+                        childName: f.childName.trim().length < 2 ? "Add the child's name." : ''
+                    };
+                },
+
+                formIsValid: function () {
+                    var e = this.fieldErrors;
+                    return !e.parentName && !e.parentEmail && !e.parentPhone && !e.childName;
+                },
+
+                loginEmailError: function () {
+                    var email = this.loginEmail.trim();
+                    if (email.length === 0) return 'Add the email you registered with.';
+                    if (email.indexOf('@') === -1) return 'An email address needs an @ in it.';
+                    if (!EMAIL_RE.test(email)) return "That doesn't look like a complete email address.";
+                    return '';
+                }
             },
 
             methods: {
+                digitsOnly: function (value) {
+                    return String(value).replace(/\D/g, '');
+                },
+
+                touch: function (field) {
+                    this.$set(this.touched, field, true);
+                },
+
+                showError: function (field) {
+                    return this.touched[field] && !!this.fieldErrors[field];
+                },
+
+                // Strips everything that isn't a digit and re-inserts the hyphens
+                // as the parent types, so the field can only ever hold 313-555-0142.
+                onPhoneInput: function (event) {
+                    var digits = this.digitsOnly(event.target.value).slice(0, 10);
+                    var formatted = digits;
+
+                    if (digits.length > 6) {
+                        formatted = digits.slice(0, 3) + '-' + digits.slice(3, 6) + '-' + digits.slice(6);
+                    } else if (digits.length > 3) {
+                        formatted = digits.slice(0, 3) + '-' + digits.slice(3);
+                    }
+
+                    this.form.parentPhone = formatted;
+                    // If a typed letter left the formatted value unchanged, Vue won't
+                    // re-render, so clear it out of the input by hand.
+                    event.target.value = formatted;
+                },
+
                 goToSpread: function (targetIndex) {
                     var self = this;
                     this.spread = targetIndex;
@@ -232,9 +352,16 @@
                     this.regError = '';
                     this.regResult = null;
 
-                    var local = this.validateForm();
-                    if (local) {
-                        this.regError = local;
+                    // Reveal every outstanding error at once on a submit attempt.
+                    Object.keys(this.touched).forEach(function (field) {
+                        self.$set(self.touched, field, true);
+                    });
+
+                    if (!this.formIsValid) {
+                        var e = this.fieldErrors;
+                        this.regError = (e.parentName || e.parentEmail || e.parentPhone)
+                            ? 'Some details on the facing page still need filling in.'
+                            : e.childName;
                         return;
                     }
 
@@ -265,38 +392,25 @@
                         });
                 },
 
-                validateForm: function () {
-                    var f = this.form;
-                    if (f.parentName.trim().length < 2) return 'Add the parent or guardian name on the facing page.';
-                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(f.parentEmail.trim())) {
-                        return 'Add a valid email on the facing page — that is where the invoice goes.';
-                    }
-                    if (f.parentPhone.replace(/\D/g, '').length < 10) {
-                        return 'Add a phone number with at least 10 digits on the facing page.';
-                    }
-                    if (f.childName.trim().length < 2) return "Add the child's name.";
-                    return '';
-                },
-
                 // Keeps the parent's contact details, clears the child fields.
                 startAnotherChild: function () {
                     this.form.childName = '';
+                    this.$set(this.touched, 'childName', false);
                     this.regResult = null;
                     this.regError = '';
                 },
 
                 lookUpHistory: function () {
                     var self = this;
-                    var email = this.loginEmail.trim().toLowerCase();
-
+                    this.loginTouched = true;
                     this.historyError = '';
 
-                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
-                        this.historyError = 'Enter the email address you registered with.';
+                    if (this.loginEmailError) {
                         this.historyLoaded = false;
                         return;
                     }
 
+                    var email = this.loginEmail.trim().toLowerCase();
                     this.historyLoading = true;
                     this.history = [];
 
