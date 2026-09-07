@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Huda Math Club</title>
+    <link rel="stylesheet" href="Math Club Registration Style.css.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+</head>
+<body>
+    <div id="app">
+        <nav>
+            <button class="paper-btn" :class="{ 'is-current': spread === 0 }" @click="goToSpread(0)">Home</button>
+            <button class="paper-btn" :class="{ 'is-current': spread === 1 }" @click="goToSpread(1)">Lectures</button>
+            <button class="paper-btn" :class="{ 'is-current': spread === 2 }" @click="goToSpread(2)">Register</button>
+            <button class="paper-btn" :class="{ 'is-current': spread === 3 }" @click="goToSpread(3)">Login</button>
+        </nav>
+
+        <div id="notebook">
+            <!-- STATIC LEFT PAGE — left side of the Home spread -->
+            <div class="static-page left-top">
+                <div class="page-content">
+                    <h1>Welcome to the Huda Math Club</h1>
+                    <p>Grab a pencil. We tackle the hardest problems every week.</p>
+                    <p class="small muted">Two sessions run each term, twenty seats each. Once a session fills, new sign-ups join the waitlist in order.</p>
+                </div>
+            </div>
+
+            <!-- STATIC RIGHT PAGE — right side of the Login spread -->
+            <div class="static-page right-bottom">
+                <div class="page-content">
+                    <h1>Your Registrations</h1>
+
+                    <p v-if="!historyLoaded && !historyLoading && !historyError" class="small muted">
+                        Enter your email on the facing page and the list shows up here.
+                    </p>
+
+                    <p v-if="historyLoading" class="small muted">Flipping through the roster&hellip;</p>
+
+                    <div v-if="historyError" class="alert alert-bad">{{ historyError }}</div>
+
+                    <template v-if="historyLoaded && !historyLoading">
+                        <p v-if="history.length === 0" class="small">
+                            Nothing filed under <strong>{{ historyEmail }}</strong> yet. Head to the Register page to sign up.
+                        </p>
+
+                        <ul v-else class="reg-list">
+                            <li v-for="entry in history" :key="entry.id">
+                                <div class="reg-name">{{ entry.child_name }}</div>
+                                <div class="small muted">{{ entry.session }} &middot; signed up {{ formatDate(entry.created_at) }}</div>
+                                <span v-if="entry.status === 'Confirmed'" class="badge badge-ok">Confirmed</span>
+                                <span v-else class="badge badge-wait">Waitlist &mdash; spot #{{ entry.waitlist_spot }}</span>
+                            </li>
+                        </ul>
+                    </template>
+                </div>
+            </div>
+
+            <!-- CARD 2 — front: rest of the register form / back: Login -->
+            <div class="flip-container" :style="{ zIndex: cards[2].zIndex }" :class="{ flip: cards[2].isFlipped }">
+                <div class="flipper">
+                    <div class="front">
+                        <div class="page-content">
+                            <h1>Register Cont.</h1>
+
+                            <label for="child-name">Child's name</label>
+                            <input id="child-name" type="text" v-model="form.childName" placeholder="e.g. Ada Lovelace"
+                                   @keyup.enter="submitRegistration">
+
+                            <label for="session">Session</label>
+                            <select id="session" v-model="form.session">
+                                <option>Session 1</option>
+                                <option>Session 2</option>
+                            </select>
+
+                            <p class="note">
+                                We keep your email and phone so we can send an invoice once the club's LLC is set up.
+                                Nothing is due today &mdash; payment details will come straight to you.
+                            </p>
+
+                            <div v-if="regError" class="alert alert-bad">{{ regError }}</div>
+
+                            <div v-if="regResult" class="alert" :class="regResult.status === 'Confirmed' ? 'alert-ok' : 'alert-wait'">
+                                <template v-if="regResult.status === 'Confirmed'">
+                                    {{ regResult.childName }} has a seat in {{ regResult.session }}.
+                                </template>
+                                <template v-else>
+                                    {{ regResult.session }} is full, so {{ regResult.childName }} is on the waitlist at
+                                    spot #{{ regResult.waitlistSpot }}. We'll email you the moment a seat frees up.
+                                </template>
+                            </div>
+
+                            <div class="btn-row">
+                                <button class="paper-btn" @click="submitRegistration" :disabled="submitting">
+                                    {{ submitting ? 'Signing up&hellip;' : 'Sign up' }}
+                                </button>
+                                <button v-if="regResult" class="paper-btn btn-quiet" @click="startAnotherChild">
+                                    Add another child
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="back">
+                        <div class="page-content">
+                            <h1>Login</h1>
+                            <p>Enter the email you signed up with to see where each child stands.</p>
+
+                            <label for="login-email">Email</label>
+                            <input id="login-email" type="email" v-model="loginEmail" placeholder="you@example.com"
+                                   @keyup.enter="lookUpHistory">
+
+                            <div class="btn-row">
+                                <button class="paper-btn" @click="lookUpHistory" :disabled="historyLoading">
+                                    {{ historyLoading ? 'Looking&hellip;' : 'Find my registrations' }}
+                                </button>
+                            </div>
+
+                            <p class="small muted">No password &mdash; the list is keyed to your email address.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD 1 — front: rest of Lectures / back: start of the register form -->
+            <div class="flip-container" :style="{ zIndex: cards[1].zIndex }" :class="{ flip: cards[1].isFlipped }">
+                <div class="flipper">
+                    <div class="front">
+                        <div class="page-content">
+                            <h1>Lectures Cont.</h1>
+                            <ul class="lecture-list">
+                                <li><strong>Nov 10:</strong> Intro to topology (why a coffee mug is a donut)</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="back">
+                        <div class="page-content">
+                            <h1>Register</h1>
+                            <p>Write your details below, then turn the page to finish.</p>
+
+                            <label for="parent-name">Parent or guardian name</label>
+                            <input id="parent-name" type="text" v-model="form.parentName" placeholder="e.g. Sofia Kovalevskaya">
+
+                            <label for="parent-email">Email</label>
+                            <input id="parent-email" type="email" v-model="form.parentEmail" placeholder="you@example.com">
+
+                            <label for="parent-phone">Phone</label>
+                            <input id="parent-phone" type="tel" v-model="form.parentPhone" placeholder="(313) 555-0142">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD 0 — front: rest of Home / back: start of Lectures -->
+            <div class="flip-container" :style="{ zIndex: cards[0].zIndex }" :class="{ flip: cards[0].isFlipped }">
+                <div class="flipper">
+                    <div class="front">
+                        <div class="page-content">
+                            <h1>More Info</h1>
+                            <h3>Problem of the week</h3>
+                            <p>Prove that for any integer n, n&sup3; &minus; n is divisible by 3.</p>
+                        </div>
+                    </div>
+
+                    <div class="back">
+                        <div class="page-content">
+                            <h1>Lectures</h1>
+                            <ul class="lecture-list">
+                                <li><strong>Oct 12:</strong> The geometry of origami with Dr. Fold</li>
+                                <li><strong>Oct 26:</strong> Cryptography: how to pass secret notes</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                // cards[i] sits between spread i and spread i+1
+                cards: [
+                    { isFlipped: false, zIndex: 3 },
+                    { isFlipped: false, zIndex: 2 },
+                    { isFlipped: false, zIndex: 1 }
+                ],
+                spread: 0,
+
+                form: {
+                    parentName: '',
+                    parentEmail: '',
+                    parentPhone: '',
+                    childName: '',
+                    session: 'Session 1'
+                },
+                submitting: false,
+                regError: '',
+                regResult: null,
+
+                loginEmail: '',
+                historyEmail: '',
+                history: [],
+                historyLoaded: false,
+                historyLoading: false,
+                historyError: ''
+            },
+
+            methods: {
+                goToSpread: function (targetIndex) {
+                    var self = this;
+                    this.spread = targetIndex;
+
+                    this.cards.forEach(function (card, i) {
+                        var shouldBeFlipped = i < targetIndex;
+                        if (card.isFlipped === shouldBeFlipped) return;
+
+                        self.$set(card, 'isFlipped', shouldBeFlipped);
+
+                        // Swap the z-index at the 90-degree mark so the page
+                        // lands on top of the correct stack.
+                        setTimeout(function () {
+                            self.$set(card, 'zIndex', shouldBeFlipped ? i + 1 : self.cards.length - i);
+                        }, 300);
+                    });
+                },
+
+                submitRegistration: function () {
+                    var self = this;
+                    this.regError = '';
+                    this.regResult = null;
+
+                    var local = this.validateForm();
+                    if (local) {
+                        this.regError = local;
+                        return;
+                    }
+
+                    this.submitting = true;
+
+                    fetch('/api/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(this.form)
+                    })
+                        .then(function (res) {
+                            return res.json().then(function (body) {
+                                return { ok: res.ok, body: body };
+                            });
+                        })
+                        .then(function (result) {
+                            if (!result.ok) {
+                                self.regError = result.body.error || 'The sign-up did not save. Try again.';
+                                return;
+                            }
+                            self.regResult = result.body;
+                        })
+                        .catch(function () {
+                            self.regError = 'Could not reach the server. Check your connection and try again.';
+                        })
+                        .then(function () {
+                            self.submitting = false;
+                        });
+                },
+
+                validateForm: function () {
+                    var f = this.form;
+                    if (f.parentName.trim().length < 2) return 'Add the parent or guardian name on the facing page.';
+                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(f.parentEmail.trim())) {
+                        return 'Add a valid email on the facing page — that is where the invoice goes.';
+                    }
+                    if (f.parentPhone.replace(/\D/g, '').length < 10) {
+                        return 'Add a phone number with at least 10 digits on the facing page.';
+                    }
+                    if (f.childName.trim().length < 2) return "Add the child's name.";
+                    return '';
+                },
+
+                // Keeps the parent's contact details, clears the child fields.
+                startAnotherChild: function () {
+                    this.form.childName = '';
+                    this.regResult = null;
+                    this.regError = '';
+                },
+
+                lookUpHistory: function () {
+                    var self = this;
+                    var email = this.loginEmail.trim().toLowerCase();
+
+                    this.historyError = '';
+
+                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+                        this.historyError = 'Enter the email address you registered with.';
+                        this.historyLoaded = false;
+                        return;
+                    }
+
+                    this.historyLoading = true;
+                    this.history = [];
+
+                    fetch('/api/history?email=' + encodeURIComponent(email))
+                        .then(function (res) {
+                            return res.json().then(function (body) {
+                                return { ok: res.ok, body: body };
+                            });
+                        })
+                        .then(function (result) {
+                            if (!result.ok) {
+                                self.historyError = result.body.error || 'Could not read the registration list.';
+                                self.historyLoaded = false;
+                                return;
+                            }
+                            self.history = result.body.registrations || [];
+                            self.historyEmail = email;
+                            self.historyLoaded = true;
+                        })
+                        .catch(function () {
+                            self.historyError = 'Could not reach the server. Check your connection and try again.';
+                            self.historyLoaded = false;
+                        })
+                        .then(function () {
+                            self.historyLoading = false;
+                        });
+                },
+
+                formatDate: function (value) {
+                    if (!value) return '';
+                    // D1 hands back "YYYY-MM-DD HH:MM:SS" in UTC.
+                    var parsed = new Date(String(value).replace(' ', 'T') + 'Z');
+                    if (isNaN(parsed.getTime())) return value;
+                    return parsed.toLocaleDateString(undefined, {
+                        year: 'numeric', month: 'short', day: 'numeric'
+                    });
+                }
+            }
+        });
+    </script>
+</body>
+</html>

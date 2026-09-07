@@ -1,0 +1,13 @@
+name = "huda-math-club"
+compatibility_date = "2026-09-01"
+
+# Static assets live here; the functions/ directory stays at the project root
+# and Cloudflare Pages picks it up automatically.
+pages_build_output_dir = "public"
+
+[[d1_databases]]
+# This name is what the code uses: env.DB
+binding = "DB"
+database_name = "huda-math-club"
+# Replace with the id printed by: npx wrangler d1 create huda-math-club
+database_id = "PASTE_YOUR_DATABASE_ID_HERE"
