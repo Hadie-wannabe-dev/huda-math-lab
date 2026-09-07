@@ -231,3 +231,15 @@ input.has-error { border-bottom: 2px solid #b03a2e; }
 .flip-container:not(.flip) .back {
     pointer-events: none;
 }
+
+.notify-box {
+    background-color: #fefce8; 
+    border: 1px solid #eab308;
+    padding: 20px;
+    margin-top: 25px;
+    box-shadow: 3px 4px 6px rgba(0,0,0,0.15);
+    transform: rotate(-1deg); /* Gives it a slightly misaligned, realistic look */
+}
+.notify-box h3 {
+    margin-top: 0;
+}
