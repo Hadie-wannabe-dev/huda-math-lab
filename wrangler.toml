@@ -8,6 +8,6 @@ pages_build_output_dir = "public"
 [[d1_databases]]
 # This name is what the code uses: env.DB
 binding = "DB"
-database_name = "huda-math-club"
+database_name = "huda-math-lab"
 # Replace with the id printed by: npx wrangler d1 create huda-math-club
 database_id = "PASTE_YOUR_DATABASE_ID_HERE"
