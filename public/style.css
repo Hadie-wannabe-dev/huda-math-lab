@@ -243,3 +243,36 @@ input.has-error { border-bottom: 2px solid #b03a2e; }
 .notify-box h3 {
     margin-top: 0;
 }
+
+.mobile-note {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 85%;
+    max-width: 350px;
+    background-color: #fdfbf7;
+    border: 2px solid #333;
+    border-radius: 2px 255px 3px 25px / 255px 5px 225px 3px;
+    padding: 25px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.4), 0 0 0 2000px rgba(0,0,0,0.2); /* Creates a dimming backdrop */
+    z-index: 9999;
+    text-align: center;
+}
+
+.mobile-note-close {
+    display: inline-block;
+    margin-top: 15px;
+    background: transparent;
+    border: 2px solid #333;
+    font-family: 'Permanent Marker', cursive;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 8px 20px;
+    border-radius: 2px 255px 3px 25px / 255px 5px 225px 3px;
+    transition: transform 0.2s;
+}
+
+.mobile-note-close:hover {
+    transform: scale(1.05) rotate(-2deg);
+}
