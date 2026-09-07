@@ -1,15 +1,12 @@
 /**
  * POST /api/register
- *
  * Body: { parentName, parentEmail, parentPhone, childName, session }
- *
- * Assigns "Confirmed" to the first SEATS_PER_SESSION sign-ups in a session and
- * "Waitlist" (with a spot number) to everyone after. Rejects duplicates of the
- * same (parent email, child name, session) with a 400.
+ * session is 'Session 1', 'Session 2', or 'Both'. 'Both' is stored as two rows.
  */
 
 const SEATS_PER_SESSION = 20;
-const VALID_SESSIONS = ['Session 1', 'Session 2'];
+const REAL_SESSIONS = ['Session 1', 'Session 2'];
+const VALID_CHOICES = ['Session 1', 'Session 2', 'Both'];
 
 const json = (body, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -21,8 +18,6 @@ function validate(body) {
   const parentName = String(body.parentName ?? '').trim();
   const parentEmail = String(body.parentEmail ?? '').trim().toLowerCase();
   const parentPhone = String(body.parentPhone ?? '').trim();
-  // Collapse runs of whitespace so "Ada  Lovelace" and "Ada Lovelace" collide
-  // on the UNIQUE constraint instead of creating two rows.
   const childName = String(body.childName ?? '').trim().replace(/\s+/g, ' ');
   const session = String(body.session ?? '').trim();
 
@@ -34,8 +29,8 @@ function validate(body) {
     return { error: 'Enter a phone number with at least 10 digits.' };
   }
   if (childName.length < 2) return { error: "Enter the child's name." };
-  if (!VALID_SESSIONS.includes(session)) {
-    return { error: 'Choose Session 1 or Session 2.' };
+  if (!VALID_CHOICES.includes(session)) {
+    return { error: 'Choose Session 1, Session 2, or Both.' };
   }
 
   return { value: { parentName, parentEmail, parentPhone, childName, session } };
@@ -44,6 +39,29 @@ function validate(body) {
 function isUniqueViolation(err) {
   const text = `${err?.message ?? ''} ${err?.cause?.message ?? ''}`;
   return /UNIQUE constraint failed/i.test(text);
+}
+
+// Inserts one row for one session, computing Confirmed vs Waitlist atomically.
+async function registerOne(env, f, session) {
+  const sql = `
+    INSERT INTO registrations
+      (parent_name, parent_email, parent_phone, child_name, session, status, waitlist_spot)
+    SELECT
+      ?, ?, ?, ?, ?,
+      CASE WHEN taken.n < ${SEATS_PER_SESSION} THEN 'Confirmed' ELSE 'Waitlist' END,
+      CASE WHEN taken.n < ${SEATS_PER_SESSION} THEN NULL ELSE taken.n - ${SEATS_PER_SESSION} + 1 END
+    FROM (SELECT COUNT(*) AS n FROM registrations WHERE session = ?) AS taken
+    RETURNING id, child_name, session, status, waitlist_spot, created_at;
+  `;
+  try {
+    const row = await env.DB.prepare(sql)
+      .bind(f.parentName, f.parentEmail, f.parentPhone, f.childName, session, session)
+      .first();
+    return { session, ok: true, row };
+  } catch (err) {
+    if (isUniqueViolation(err)) return { session, duplicate: true };
+    throw err;
+  }
 }
 
 export async function onRequestPost({ request, env }) {
@@ -57,52 +75,44 @@ export async function onRequestPost({ request, env }) {
   const { error, value } = validate(body);
   if (error) return json({ error }, 400);
 
-  const { parentName, parentEmail, parentPhone, childName, session } = value;
-
-  // One statement, so the seat count and the insert can't be split by a
-  // concurrent sign-up. SEATS_PER_SESSION is an internal constant, never user
-  // input, so interpolating it into the SQL text is safe.
-  const sql = `
-    INSERT INTO registrations
-      (parent_name, parent_email, parent_phone, child_name, session, status, waitlist_spot)
-    SELECT
-      ?, ?, ?, ?, ?,
-      CASE WHEN taken.n < ${SEATS_PER_SESSION} THEN 'Confirmed' ELSE 'Waitlist' END,
-      CASE WHEN taken.n < ${SEATS_PER_SESSION} THEN NULL ELSE taken.n - ${SEATS_PER_SESSION} + 1 END
-    FROM (SELECT COUNT(*) AS n FROM registrations WHERE session = ?) AS taken
-    RETURNING id, child_name, session, status, waitlist_spot, created_at;
-  `;
+  const targets = value.session === 'Both' ? REAL_SESSIONS : [value.session];
 
   try {
-    const row = await env.DB.prepare(sql)
-      .bind(parentName, parentEmail, parentPhone, childName, session, session)
-      .first();
+    const results = [];
+    for (const s of targets) {
+      results.push(await registerOne(env, value, s));
+    }
 
-    if (!row) return json({ error: 'The sign-up did not save. Try again.' }, 500);
+    const created = results.filter((r) => r.ok);
+    const dupes = results.filter((r) => r.duplicate).map((r) => r.session);
 
-    return json(
-      {
-        ok: true,
-        id: row.id,
-        childName: row.child_name,
-        session: row.session,
-        status: row.status,
-        waitlistSpot: row.waitlist_spot,
-        createdAt: row.created_at,
-      },
-      201
-    );
-  } catch (err) {
-    if (isUniqueViolation(err)) {
+    // Everything was already on file — nothing to add.
+    if (created.length === 0) {
       return json(
         {
-          error: `${childName} is already signed up for ${session} under this email. Check the Login page to see the current status.`,
+          error: `${value.childName} is already signed up for ${dupes.join(' and ')} under this email. Check the Login page for the current status.`,
           code: 'DUPLICATE',
         },
         400
       );
     }
 
+    return json(
+      {
+        ok: true,
+        registrations: created.map((r) => ({
+          id: r.row.id,
+          childName: r.row.child_name,
+          session: r.row.session,
+          status: r.row.status,
+          waitlistSpot: r.row.waitlist_spot,
+          createdAt: r.row.created_at,
+        })),
+        duplicates: dupes, // sessions skipped because they already existed
+      },
+      201
+    );
+  } catch (err) {
     console.error('register failed:', err);
     return json({ error: 'The sign-up did not save. Try again in a moment.' }, 500);
   }
