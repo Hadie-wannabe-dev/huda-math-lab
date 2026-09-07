@@ -1,0 +1,176 @@
+@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Permanent+Marker&display=swap');
+
+body {
+    margin: 0; padding: 0;
+    background-color: #e8e4dc; /* fallback if the texture is missing */
+    background-image: url('White%20Crumpled%20Paper%20Texture.jpg');
+    background-size: cover; background-attachment: fixed;
+    font-family: 'Courier Prime', monospace; color: #333;
+    display: flex; justify-content: center; align-items: center;
+    min-height: 100vh; overflow: hidden;
+}
+
+nav { position: absolute; top: 20px; left: 20px; display: flex; gap: 15px; z-index: 1000; flex-wrap: wrap; }
+
+.paper-btn {
+    background: #fdfbf7; border: 1px solid #ccc; padding: 10px 20px;
+    font-family: 'Permanent Marker', cursive; font-size: 1.2rem;
+    cursor: pointer; box-shadow: 2px 3px 5px rgba(0,0,0,0.2);
+    transition: transform 0.5s;
+    border-radius: 2px 255px 3px 25px / 255px 5px 225px 3px;
+}
+.paper-btn:hover { transform: scale(1.05) rotate(-2deg); }
+.paper-btn:focus-visible { outline: 2px solid #333; outline-offset: 2px; }
+.paper-btn[disabled] { opacity: 0.55; cursor: default; transform: none; }
+
+/* The page you're currently on gets a marker underline. */
+.paper-btn.is-current { border-bottom: 3px solid #333; }
+
+.paper-btn.btn-quiet { font-size: 1rem; padding: 8px 14px; background: transparent; box-shadow: none; }
+
+#notebook {
+    position: relative; width: 90vw; height: 80vh;
+    box-shadow: 5px 10px 25px rgba(0,0,0,0.4);
+    border-radius: 5px 255px 10px 25px / 255px 5px 225px 10px;
+    background: rgba(255, 255, 255, 1);
+}
+
+/* Base Mobile View: Vertical Flips (Notepad style) */
+.static-page {
+    position: absolute; width: 100%; height: 50%; box-sizing: border-box;
+}
+.static-page.left-top { top: 0; }
+.static-page.right-bottom { bottom: 0; }
+
+.flip-container {
+    position: absolute; bottom: 0; width: 100%; height: 50%;
+    perspective: 1500px; perspective-origin: center center;
+}
+.flip-container .flipper {
+    position: relative; width: 100%; height: 100%;
+    transform-style: preserve-3d; transition: transform 0.6s ease-in-out;
+    transform-origin: 50% 0%; /* Pivots from the top center */
+}
+.flip-container.flip .flipper { transform: rotateX(180deg); }
+
+.front, .back {
+    position: absolute; width: 100%; height: 100%;
+    backface-visibility: hidden; background-color: rgba(255, 255, 255, 1);
+    box-sizing: border-box;
+}
+.front { transform: rotateX(0deg); }
+.back { transform: rotateX(180deg); }
+
+/* Desktop View: Horizontal Flips (Book style) */
+@media (min-width: 510px) {
+    #notebook { width: 800px; height: 550px; }
+
+    .static-page { width: 50%; height: 100%; }
+    .static-page.left-top { top: 0; left: 0; }
+    .static-page.right-bottom { bottom: auto; right: 0; top: 0; }
+
+    .flip-container {
+        width: 50%; height: 100%;
+        bottom: auto; top: 0; right: 0;
+    }
+    .flip-container .flipper {
+        transform-origin: 0% 50%; /* Pivots from the left center */
+    }
+    .flip-container.flip .flipper { transform: rotateY(-180deg); }
+
+    .front { transform: rotateY(0deg); }
+    .back { transform: rotateY(180deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .flip-container .flipper { transition: none; }
+    .paper-btn { transition: none; }
+    .paper-btn:hover { transform: none; }
+}
+
+/* Pages hold more now, so let a long page scroll instead of spilling. */
+.page-content {
+    padding: 40px; box-sizing: border-box; height: 100%;
+    overflow-y: auto;
+}
+
+h1 {
+    font-family: 'Permanent Marker', cursive; font-size: 1.9rem;
+    margin-top: 0; margin-bottom: 16px;
+    border-bottom: 2px dashed #999; padding-bottom: 10px;
+}
+h3 { font-family: 'Permanent Marker', cursive; font-weight: normal; margin-bottom: 4px; }
+p { line-height: 1.5; }
+.small { font-size: 0.85rem; }
+.muted { color: #6b6b6b; }
+
+label {
+    display: block; font-size: 0.85rem; color: #555;
+    margin-bottom: 4px; letter-spacing: 0.02em;
+}
+
+input, select {
+    font-family: 'Courier Prime', monospace; background: transparent;
+    border: none; border-bottom: 1px solid #333; width: 100%;
+    margin-bottom: 18px; font-size: 1.1rem; color: #333;
+    padding: 2px 0; box-sizing: border-box;
+}
+input:focus, select:focus { outline: none; border-bottom: 2px solid #000; }
+select { cursor: pointer; border-radius: 0; }
+
+.btn-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+
+/* Torn-off sticky note for the invoice explanation. */
+.note {
+    font-size: 0.85rem; line-height: 1.45; color: #444;
+    background: #fdf6d8; border: 1px dashed #c9bb7a;
+    padding: 10px 12px; margin: 4px 0 18px;
+    border-radius: 1px 60px 2px 40px / 40px 2px 60px 2px;
+}
+
+.alert {
+    font-size: 0.9rem; line-height: 1.45;
+    padding: 10px 12px; margin-bottom: 14px;
+    border-left: 4px solid #999; background: #f6f4ef;
+}
+.alert-bad  { border-left-color: #b03a2e; background: #fbeceb; }
+.alert-ok   { border-left-color: #2e7d4f; background: #eaf5ee; }
+.alert-wait { border-left-color: #b8860b; background: #fdf6e3; }
+
+.lecture-list { padding-left: 20px; line-height: 1.6; }
+
+.reg-list { list-style: none; padding: 0; margin: 0; }
+.reg-list li {
+    padding: 12px 0; border-bottom: 1px dashed #ccc;
+}
+.reg-list li:last-child { border-bottom: none; }
+.reg-name { font-size: 1.05rem; font-weight: 700; }
+
+.badge {
+    display: inline-block; margin-top: 6px;
+    font-size: 0.78rem; padding: 2px 10px;
+    border: 1px solid currentColor;
+    border-radius: 2px 40px 3px 30px / 30px 3px 40px 3px;
+}
+.badge-ok   { color: #2e7d4f; }
+.badge-wait { color: #b8860b; }
+
+/* 1. Force clicks to pass through the invisible main containers */
+.flip-container {
+    pointer-events: none;
+}
+
+/* 2. Re-enable clicks strictly on the physical page faces */
+.front, .back {
+    pointer-events: auto;
+}
+
+/* 3. Disable clicks on the front face when the page is flipped out of the way */
+.flip-container.flip .front {
+    pointer-events: none;
+}
+
+/* 4. Disable clicks on the back face when the page is resting on the right stack */
+.flip-container:not(.flip) .back {
+    pointer-events: none;
+}
