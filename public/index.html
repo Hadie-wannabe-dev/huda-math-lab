@@ -28,12 +28,13 @@
                         see how what they learn in the club can be used in real life (there will also be smaller projects spread throughout the curriculum!)
                         The first term project will be using data analysis techniques with graphs to optimize egg drop designs, whereas the second term project will 
                         be using similar techniques to optimize a real, go cart size car for different types of races (students will not be riding it!).</p>
-                </div>
+                
+                    </div>
             </div>
 
             <!-- STATIC RIGHT PAGE — right side of the Login spread -->
             <div class="static-page right-bottom">
-                <div class="page-content">
+                <div class="page-content" style="padding-bottom: 120px;">
                     <h1>Your Registrations</h1>
 
                     <p v-if="!historyLoaded && !historyLoading && !historyError" class="small muted">
@@ -43,7 +44,11 @@
                     <p v-if="historyLoading" class="small muted">Flipping through the roster&hellip;</p>
 
                     <div v-if="historyError" class="alert alert-bad">{{ historyError }}</div>
-
+                    <div style="position: absolute; bottom: 20px; right: 20px; background: #fefce8; padding: 10px 15px; border: 1px solid #eab308; transform: rotate(2deg); box-shadow: 2px 2px 5px rgba(0,0,0,0.15); z-index: 1;">
+                        <span style="font-family: 'Permanent Marker', cursive; font-size: 1.2rem;">Contact</span><br>
+                        <span class="small">huda.math@example.com</span><br>
+                        <span class="small">(313) 555-0142</span>
+                    </div>
                     <template v-if="historyLoaded && !historyLoading">
                         <p v-if="history.length === 0" class="small">
                             Nothing filed under <strong>{{ historyEmail }}</strong> yet. Head to the Register page to sign up.
@@ -58,6 +63,7 @@
                             </li>
                         </ul>
                     </template>
+                    
                 </div>
             </div>
 
@@ -65,7 +71,7 @@
             <div class="flip-container" :style="{ zIndex: cards[2].zIndex }" :class="{ flip: cards[2].isFlipped }">
                 <div class="flipper">
                     <div class="front">
-                        <div class="page-content">
+                        <div class="page-content" style="padding-bottom: 120px;">
                             <h1>Register Cont.</h1>
 
                             <div class="field">
@@ -116,6 +122,11 @@
                                 <button v-if="regResult" class="paper-btn btn-quiet" @click="startAnotherChild">
                                     Add another child
                                 </button>
+                            </div>
+                            <div style="position: absolute; bottom: 20px; right: 20px; background: #fefce8; padding: 10px 15px; border: 1px solid #eab308; transform: rotate(2deg); box-shadow: 2px 2px 5px rgba(0,0,0,0.15); z-index: 10;">
+                                <span style="font-family: 'Permanent Marker', cursive; font-size: 1.2rem;">Contact</span><br>
+                                <span class="small">huda.math@example.com</span><br>
+                                <span class="small">(313) 555-0142</span>
                             </div>
                         </div>
                     </div>
@@ -178,7 +189,9 @@
                     <div class="back">
                         <div class="page-content">
                             <h1>Register</h1>
-                            <p>Write your details below, then turn the page to finish.</p>
+                            <p>Cost per term is $275. This covers a 8 week term (which is 16 sessions long), includes <u>food everyday</u>, and <u>project supplies</u> (a human sized car!). 
+                                This comes out to <b>$17 per session</b>!
+                            </p>
 
                             <div class="field">
                                 <label for="parent-name">Parent or guardian name</label>
@@ -217,7 +230,7 @@
             <div class="flip-container" :style="{ zIndex: cards[0].zIndex }" :class="{ flip: cards[0].isFlipped }">
                 <div class="flipper">
                     <div class="front">
-                        <div class="page-content">
+                        <div class="page-content" style="padding-bottom: 120px;">
                             <h1>More Info</h1>
                             <h3>Program dates</h3>
                             <ul>
@@ -228,6 +241,18 @@
                                 <a href="https://share.google/uT8SeWQC3Tr28VHcg" target="_blank" rel="noopener noreferrer">Huda Upper School</a>
                             </p>
                             <p>It is highly recommended to register for both sessions. There is a limit of <b>20 students per session</b> so please register as soon as possible!</p>
+
+                            <div style="position: absolute; bottom: 20px; right: 20px; background: #fefce8; padding: 10px 15px; border: 1px solid #eab308; transform: rotate(-3deg); box-shadow: 2px 2px 5px rgba(0,0,0,0.1); z-index: 10;">
+                                <span style="font-family: 'Permanent Marker', cursive; font-size: 1.2rem;">Contact</span><br>
+                                <span class="small">huda.math@example.com</span><br>
+                                <span class="small">(313) 555-0142</span>
+                            </div>
+
+                            <div style="position: absolute; bottom: 20px; right: 20px; background: #fefce8; padding: 10px 15px; border: 1px solid #eab308; transform: rotate(-3deg); box-shadow: 2px 2px 5px rgba(0,0,0,0.1); z-index: 10;">
+                                <span style="font-family: 'Permanent Marker', cursive; font-size: 1.2rem;">Contact</span><br>
+                                <span class="small">huda.math@example.com</span><br>
+                                <span class="small">(313) 555-0142</span>
+                            </div>
                         </div>
                     </div>
 
@@ -236,7 +261,8 @@
                             <h1>Lectures</h1>
                             <p>Lectures are going to be seminars held at Huda School where we bring 
                                 professionals and researches who use Math everyday to show students 
-                                that Math really is useful!</p>
+                                that Math really is useful! <b>Lectures are open to everyone!</b> Both students (and parents) enrolled or not, are welcome!
+                            </p>
 
                             <div class="notify-box">
                                 <h3>Interested?</h3>
@@ -265,7 +291,7 @@
         <!-- Shown only below the 510px breakpoint, where the notebook drops to
              one page at a time. Hidden entirely on desktop by CSS. -->
         <div class="mobile-note" v-if="!mobileNoteDismissed">
-            <span>This opens as a full two-page notebook on a laptop or desktop. It still works here &mdash; the pages just flip one at a time.</span>
+            <span>Designed for <b>laptop usage</b>. It still works here, but it be hard to navigate.</span>
             <button class="mobile-note-close" @click="mobileNoteDismissed = true" aria-label="Dismiss">&times;</button>
         </div>
     </div>
