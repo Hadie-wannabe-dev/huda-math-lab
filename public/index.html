@@ -20,9 +20,14 @@
             <!-- STATIC LEFT PAGE — left side of the Home spread -->
             <div class="static-page left-top">
                 <div class="page-content">
-                    <h1>Welcome to the Huda Math Lab</h1>
+                    <h1>Welcome to the <span style="color: red;">Huda Math Lab</span></h1>
                     <p>Grab a pencil. We tackle the hardest problems every week.</p>
-                    <p class="small muted">Two sessions run each term, twenty seats each. Once a session fills, new sign-ups join the waitlist in order and move up automatically as seats open.</p>
+                    <p class="small muted">Huda Math Lab is an initiative to teach Muslim students (grades 6+) how they can use 
+                        <strong>very simple Math concepts to build real projects</strong>. The program is currently designed to be 2 terms, with each term 
+                        being 8 weeks long and having 16 sessions. Each term will culminate in a final project where students will
+                        see how what they learn in the club can be used in real life (there will also be smaller projects spread throughout the curriculum!)
+                        The first term project will be using data analysis techniques with graphs to optimize egg drop designs, whereas the second term project will 
+                        be using similar techniques to optimize a real, go cart size car for different types of races (students will not be riding it!).</p>
                 </div>
             </div>
 
@@ -76,8 +81,9 @@
                             <div class="field">
                                 <label for="session">Session</label>
                                 <select id="session" v-model="form.session">
-                                    <option>Session 1</option>
-                                    <option>Session 2</option>
+                                    <option value="Session 1">Session 1</option>
+                                    <option value="Session 2">Session 2</option>
+                                    <option value="Both">Both sessions</option>
                                 </select>
                             </div>
 
@@ -88,15 +94,19 @@
 
                             <div v-if="regError" class="alert alert-bad">{{ regError }}</div>
 
-                            <div v-if="regResult" class="alert" :class="regResult.status === 'Confirmed' ? 'alert-ok' : 'alert-wait'">
-                                <template v-if="regResult.status === 'Confirmed'">
-                                    {{ regResult.childName }} has a seat in {{ regResult.session }}.
-                                </template>
-                                <template v-else>
-                                    {{ regResult.session }} is full, so {{ regResult.childName }} is on the waitlist at
-                                    spot #{{ regResult.waitlistSpot }}. Spots move up on their own as seats open &mdash;
-                                    check back on the Login page.
-                                </template>
+                            <div v-if="regResult" class="alert alert-ok">
+                                <div v-for="r in regResult.registrations" :key="r.id">
+                                    <template v-if="r.status === 'Confirmed'">
+                                        {{ r.childName }} has a seat in {{ r.session }}.
+                                    </template>
+                                    <template v-else>
+                                        {{ r.session }} is full, so {{ r.childName }} is on the waitlist at
+                                        spot #{{ r.waitlistSpot }}. Spots move up on their own as seats open.
+                                    </template>
+                                </div>
+                                <div v-if="regResult.duplicates && regResult.duplicates.length" class="small muted" style="margin-top: 6px;">
+                                    Already registered for {{ regResult.duplicates.join(' and ') }} &mdash; left as-is.
+                                </div>
                             </div>
 
                             <div class="btn-row">
@@ -141,10 +151,26 @@
             <div class="flip-container" :style="{ zIndex: cards[1].zIndex }" :class="{ flip: cards[1].isFlipped }">
                 <div class="flipper">
                     <div class="front">
-                        <div class="page-content">
-                            <h1>Lectures Cont.</h1>
+                        <div class="page-content" style="position: relative; overflow: hidden;">
+                
+                            <!-- Tape 1: Upper section -->
+                            <div style="position: absolute; top: 60px; left: -10%; width: 110%; background-color: #ffd700; color: #111; font-family: 'Permanent Marker', cursive; font-size: 1.8rem; letter-spacing: 2px; text-align: center; padding: 10px 0; transform: rotate(-12deg); box-shadow: 0 3px 6px rgba(0,0,0,0.3); opacity: 0.95; z-index: 10;">
+                                COMING SOON!
+                            </div>
+
+                            <!-- Tape 2: Crosses Tape 1 on the left, reaches steeply down -->
+                            <div style="position: absolute; top: 170px; left: -35%; width: 160%; background-color: #ffd700; color: #111; font-family: 'Permanent Marker', cursive; font-size: 2.2rem; letter-spacing: 3px; text-align: center; padding: 12px 0; transform: rotate(45deg); box-shadow: 0 4px 8px rgba(0,0,0,0.4); opacity: 0.95; z-index: 11;">
+                                COMING SOON!
+                            </div>
+
+                            <!-- Tape 3: Crosses Tape 2 on the right, finishes the bottom of the page -->
+                            <div style="position: absolute; top: 320px; left: -20%; width: 140%; background-color: #ffd700; color: #111; font-family: 'Permanent Marker', cursive; font-size: 1.9rem; letter-spacing: 1px; text-align: center; padding: 8px 0; transform: rotate(-28deg); box-shadow: 0 3px 7px rgba(0,0,0,0.35); opacity: 0.95; z-index: 12;">
+                                COMING SOON!
+                            </div>
+            
+                            <h1>Lectures Dates</h1>
                             <ul class="lecture-list">
-                                <li><strong>Nov 10:</strong> Intro to topology (why a coffee mug is a donut)</li>
+                                
                             </ul>
                         </div>
                     </div>
@@ -193,18 +219,43 @@
                     <div class="front">
                         <div class="page-content">
                             <h1>More Info</h1>
-                            <h3>Problem of the week</h3>
-                            <p>Prove that for any integer n, n&sup3; &minus; n is divisible by 3.</p>
+                            <h3>Program dates</h3>
+                            <ul>
+                                <li>Term 1 will start <b>September 16th</b> and run until <b>November 11th</b></li>
+                                <li>Term 2 will start <b>November 16th</b> and run until <b>February 8th</b></li>
+                            </ul>
+                            <p>Both terms will be after school, <b>Mondays and Wednesdays from 3:30 pm to 5:00 pm</b> at 
+                                <a href="https://share.google/uT8SeWQC3Tr28VHcg" target="_blank" rel="noopener noreferrer">Huda Upper School</a>
+                            </p>
+                            <p>It is highly recommended to register for both sessions. There is a limit of <b>20 students per session</b> so please register as soon as possible!</p>
                         </div>
                     </div>
 
                     <div class="back">
                         <div class="page-content">
                             <h1>Lectures</h1>
-                            <ul class="lecture-list">
-                                <li><strong>Oct 12:</strong> The geometry of origami with Dr. Fold</li>
-                                <li><strong>Oct 26:</strong> Cryptography: how to pass secret notes</li>
-                            </ul>
+                            <p>Lectures are going to be seminars held at Huda School where we bring 
+                                professionals and researches who use Math everyday to show students 
+                                that Math really is useful!</p>
+
+                            <div class="notify-box">
+                                <h3>Interested?</h3>
+                                <p class="small">Lecture dates aren't set yet. Leave your email and we'll let you know when the first ones are scheduled.</p>
+
+                                <div class="field">
+                                    <label for="notify-email">Email</label>
+                                    <input id="notify-email" type="email" v-model="notifyEmail"
+                                           placeholder="you@example.com" @keyup.enter="submitNotify">
+                                </div>
+
+                                <div v-if="notifyMessage" class="alert" :class="notifyOk ? 'alert-ok' : 'alert-bad'">
+                                    {{ notifyMessage }}
+                                </div>
+
+                                <button class="paper-btn" @click="submitNotify" :disabled="notifySubmitting">
+                                    {{ notifySubmitting ? 'Adding&hellip;' : 'Notify me' }}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -259,7 +310,12 @@
                 historyLoading: false,
                 historyError: '',
 
-                mobileNoteDismissed: false
+                mobileNoteDismissed: false,
+
+                notifyEmail: '',
+                notifySubmitting: false,
+                notifyMessage: '',
+                notifyOk: false
             },
 
             computed: {
@@ -436,6 +492,50 @@
                         })
                         .then(function () {
                             self.historyLoading = false;
+                        });
+                },
+
+                submitNotify: function () {
+                    var self = this;
+                    var email = this.notifyEmail.trim().toLowerCase();
+                    this.notifyMessage = '';
+                    this.notifyOk = false;
+
+                    if (!EMAIL_RE.test(email)) {
+                        this.notifyMessage = email.indexOf('@') === -1
+                            ? 'An email address needs an @ in it.'
+                            : "That doesn't look like a complete email address.";
+                        return;
+                    }
+
+                    this.notifySubmitting = true;
+
+                    fetch('/api/notify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: email })
+                    })
+                        .then(function (res) {
+                            return res.json().then(function (body) {
+                                return { ok: res.ok, body: body };
+                            });
+                        })
+                        .then(function (result) {
+                            if (!result.ok) {
+                                self.notifyMessage = result.body.error || 'Could not save your email. Try again.';
+                                return;
+                            }
+                            self.notifyOk = true;
+                            self.notifyMessage = result.body.alreadyOnList
+                                ? "You're already on the list &mdash; we'll be in touch."
+                                : "You're on the list! We'll email you when lectures are set.";
+                            self.notifyEmail = '';
+                        })
+                        .catch(function () {
+                            self.notifyMessage = 'Could not reach the server. Check your connection and try again.';
+                        })
+                        .then(function () {
+                            self.notifySubmitting = false;
                         });
                 },
 
